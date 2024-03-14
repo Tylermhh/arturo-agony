@@ -1,0 +1,91 @@
+; Implemented num, str, id, and basic env as dictionary (TODO: ifC lamC appC)
+
+define :numC[num][]
+define :strC[string][]
+define :idC[id][]
+define :ifC[cond then alt][]
+define :lamC[body arguments][]
+define :appC[body arguments][]
+    
+envir: #[
+    "+":"+"
+    "-":"-"
+    "*":"*"
+    "/":"/"
+    "x": to :numC [2] ; for testing
+]
+
+; Interp
+interp: function [ ex envir ] [
+    ; Types (needed for comparison)
+    numT: to :numC [0]
+    idT: to :idC [""]
+    ifT: to :ifC [0 0 0]
+    lamT: to :lamC [0 0]
+    appT: to :appC [0 0]
+    
+    ; Using hex of type to compare
+    case [as.hex (type ex)]
+        when? [equal? (as.hex :strC)] -> return ex\string
+        when? [equal? (as.hex numT)] -> return ex\num
+        when? [equal? (as.hex idT)] [
+            ; lookup id
+            id: (envirLookup ex\id envir)
+            case [id]
+                when? [equal? "+"] -> return "TODO plus"
+                when? [equal? "-"] -> return "TODO minus"
+                when? [equal? "*"] -> return "TODO multply"
+                when? [equal? "/"] -> return "TODO divide"
+                ; if not a primV interp it
+                else -> return interp id envir
+            ]
+        when? [equal? (as.hex ifT)] -> return evalifT ex
+        when? [equal? (as.hex lamT)] -> return "TODO Lam"
+        when? [equal? (as.hex appT)] -> return "TODO App"
+        else -> return "error OAZO"
+]
+
+; Environment Lookup 
+; takes an symbol and environment and returns stored value
+envirLookup: function [ id envir ] [
+    loop envir [i bind] [
+        if id=i -> return bind
+    ]
+]
+
+; ifT implementation
+; takes an ifC and returns the evaluation
+evalifT: function [ ifC ] [
+    if? ifC\cond [ return ifC\then ] else [ return ifC\alt ]
+    return null
+]
+
+
+
+; TESTS
+
+; Num Test
+num: to :numC [1]
+print interp num envir
+
+; String Test
+str: to :strC ["hello"]
+print interp str envir
+
+; Id Test (looks up in envir)
+id: to :idC ["x"]
+print interp id envir
+
+; If Test (TODO)
+iff: to :ifC [true "then clause" "alt clause"]
+print interp iff envir
+iff2: to :ifC [false "then clause" "alt clause"]
+print interp iff2 envir
+
+; Lam Test (TODO)
+lam: to :lamC [0 1]
+print interp lam envir
+
+; Lam Test (TODO)
+app: to :appC [0 1]
+print interp app envir
