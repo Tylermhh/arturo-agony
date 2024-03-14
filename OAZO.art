@@ -5,7 +5,7 @@ define :strC[string][]
 define :idC[id][]
 define :ifC[cond then alt][]
 define :lamC[body arguments][]
-define :appC[body arguments][]
+define :appC[function arguments][]
     
 envir: #[
     "+":"+"
@@ -41,7 +41,8 @@ interp: function [ ex envir ] [
             ]
         when? [equal? (as.hex ifT)] -> return evalifT ex
         when? [equal? (as.hex lamT)] -> return "TODO Lam"
-        when? [equal? (as.hex appT)] -> return "TODO App"
+        when? [equal? (as.hex appT)] [
+            ]
         else -> return "error OAZO"
 ]
 
@@ -56,7 +57,7 @@ envirLookup: function [ id envir ] [
 ; ifT implementation
 ; takes an ifC and returns the evaluation
 evalifT: function [ ifC ] [
-    if? ifC\cond [ return ifC\then ] else [ return ifC\alt ]
+    if? interp ifC\cond envir [ return interp ifC\then envir ] else [ return interp ifC\alt envir ]
     return null
 ]
 
