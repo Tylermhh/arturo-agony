@@ -39,7 +39,7 @@ interp: function [ ex envir ] [
                 ; if not a primV interp it
                 else -> return interp id envir
             ]
-        when? [equal? (as.hex ifT)] -> return "TODO If"
+        when? [equal? (as.hex ifT)] -> return evalifT ex
         when? [equal? (as.hex lamT)] -> return "TODO Lam"
         when? [equal? (as.hex appT)] -> return "TODO App"
         else -> return "error OAZO"
@@ -52,6 +52,14 @@ envirLookup: function [ id envir ] [
         if id=i -> return bind
     ]
 ]
+
+; ifT implementation
+; takes an ifC and returns the evaluation
+evalifT: function [ ifC ] [
+    if? ifC\cond [ return ifC\then ] else [ return ifC\alt ]
+    return null
+]
+
 
 
 ; TESTS
@@ -69,8 +77,10 @@ id: to :idC ["x"]
 print interp id envir
 
 ; If Test (TODO)
-iff: to :ifC [0 1 2]
+iff: to :ifC [true "then clause" "alt clause"]
 print interp iff envir
+iff2: to :ifC [false "then clause" "alt clause"]
+print interp iff2 envir
 
 ; Lam Test (TODO)
 lam: to :lamC [0 1]
