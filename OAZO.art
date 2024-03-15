@@ -6,12 +6,17 @@ define :idC[id][]
 define :ifC[cond then alt][]
 define :lamC[body arguments][]
 define :appC[function arguments][]
+
+define :cloV[body arguments env][]
+
+define :primV[op][
+]
     
 envir: #[
-    "+":"+"
-    "-":"-"
-    "*":"*"
-    "/":"/"
+    "+": to :primV ["+"]
+    "-": to :primV ["-"]
+    "*": to :primV ["*"]
+    "/": to :primV ["/"]
     "x": to :numC [2] ; for testing
 ]
 
@@ -23,6 +28,10 @@ interp: function [ ex envir ] [
     ifT: to :ifC [0 0 0]
     lamT: to :lamC [0 0]
     appT: to :appC [0 0]
+    primT: to :primV[""]
+    cloT: to :cloV[0 0 0]
+    print "interp called"
+    print ex
     
     ; Using hex of type to compare
     case [as.hex (type ex)]
@@ -31,19 +40,33 @@ interp: function [ ex envir ] [
         when? [equal? (as.hex idT)] [
             ; lookup id
             id: (envirLookup ex\id envir)
-            case [id]
-                when? [equal? "+"] -> return "TODO plus"
-                when? [equal? "-"] -> return "TODO minus"
-                when? [equal? "*"] -> return "TODO multply"
-                when? [equal? "/"] -> return "TODO divide"
-                ; if not a primV interp it
-                else -> return interp id envir
+            if? equal? (as.hex (type primT)) (as.hex (type id)) [ 
+                return id
+            ]
+            else [ print "else" return interp id envir ]
             ]
         when? [equal? (as.hex ifT)] -> return evalifT ex
-        when? [equal? (as.hex lamT)] -> return "TODO Lam"
+        when? [equal? (as.hex lamT)] [
+            a: to :CloV [ex\body ex\arguments envir]
+            print a
+            return a]
         when? [equal? (as.hex appT)] [
+            func: (interp ex\function envir)
+            print ex\arguments
+            print ex\arguments\0
+            args: map ex\arguments 'x -> interp x envir
+            print args
+            case [as.hex (type func)]
+                ; if it is a primitive operator
+                when? [equal? (as.hex (type primT))][
+                    
+                    return applyPrim func args\0 args\1
+                ]
+
+                ; if not a primV or a cloV interp it
+                else -> print "not prim or clo" return interp id envir
             ]
-        else -> return "error OAZO"
+        else -> return "error OAZO outer match"
 ]
 
 ; Environment Lookup 
@@ -61,32 +84,65 @@ evalifT: function [ ifC ] [
     return null
 ]
 
+; apply-prim method for our custom type
+applyPrim: function [this arg1 arg2][
+    print "applyPrim called"
+    case [this\op]
+        when? [equal? "+"] -> return arg1 ++ arg2
+        when? [equal? "-"] -> return arg1 - arg2
+        when? [equal? "*"] -> return arg1 / arg2
+        when? [equal? "/"] -> return arg1 / arg2
+        ; if not a primV interp it
+        else -> return "error invalid prim-op"
+]
+
 
 
 ; TESTS
 
+
 ; Num Test
+print "Num Test"
 num: to :numC [1]
 print interp num envir
 
+
 ; String Test
+print "\nString Test"
 str: to :strC ["hello"]
 print interp str envir
 
 ; Id Test (looks up in envir)
+print "\nLookup id Test"
 id: to :idC ["x"]
 print interp id envir
 
+; primV Test (looks up in envir)
+print "\nId return primV Test"
+id: to :idC ["+"]
+print interp id envir
+
+
+; primV Test with application (applies prim)
+print "\nApply Binop Test"
+funcApp: to :appC[id [num num]]
+print interp funcApp envir
+
+print "\nTesting arrays"
+num2: to :numC[2]
+myArray: [num2 num2]
+print myArray
+
+
+
 ; If Test (TODO)
+print "\nTwo if Tests"
 iff: to :ifC [true "then clause" "alt clause"]
 print interp iff envir
 iff2: to :ifC [false "then clause" "alt clause"]
 print interp iff2 envir
 
 ; Lam Test (TODO)
+print "\nLamC return Test"
 lam: to :lamC [0 1]
 print interp lam envir
-
-; Lam Test (TODO)
-app: to :appC [0 1]
-print interp app envir
