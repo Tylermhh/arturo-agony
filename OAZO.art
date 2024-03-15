@@ -111,7 +111,8 @@ envirLookup: function [ id envir ] [
 ; ifT implementation
 ; takes an ifC and returns the evaluation
 evalifT: function [ ifC ] [
-    if? interp ifC\cond envir [ return interp ifC\then envir ] else [ return interp ifC\alt envir ]
+    if? interp ifC\cond envir [ return interp ifC\then envir ] 
+    else [ return interp ifC\alt envir ]
     return null
 ]
 
@@ -185,6 +186,7 @@ print "\nTesting arrays"
 num2: to :numC[2]
 myArray: [num2 num2]
 print myArray
+print myArray\0
 
 
 
