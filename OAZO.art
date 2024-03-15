@@ -1,5 +1,6 @@
 ; Implemented num, str, id, and basic env as dictionary (TODO: ifC lamC appC)
 
+;exprCs
 define :numC[num][]
 define :strC[string][]
 define :idC[id][]
@@ -7,11 +8,11 @@ define :ifC[cond then alt][]
 define :lamC[body arguments][]
 define :appC[function arguments][]
 
+;defined values Vs
 define :cloV[body arguments env][]
-
-define :primV[op][
-]
+define :primV[op][]
     
+; top environment
 envir: #[
     "+": to :primV ["+"]
     "-": to :primV ["-"]
@@ -21,6 +22,9 @@ envir: #[
 ]
 
 ; Interp
+; takes in an expression (one of the many exprCs defined above)
+; and an environment to evaluate the expression in
+; returns the result of evaluating it
 interp: function [ ex envir ] [
     ; Types (needed for comparison)
     numT: to :numC [0]
@@ -30,6 +34,8 @@ interp: function [ ex envir ] [
     appT: to :appC [0 0]
     primT: to :primV[""]
     cloT: to :cloV[0 0 0]
+
+    ;debug
     print "interp called with"
     print ex
     
@@ -37,34 +43,59 @@ interp: function [ ex envir ] [
     case [as.hex (type ex)]
         when? [equal? (as.hex :strC)] -> return ex\string
         when? [equal? (as.hex numT)] -> return ex\num
+
+        ; if its an idC
         when? [equal? (as.hex idT)] [
+
             ; lookup id
             id: (envirLookup ex\id envir)
+
+            ;if the lookup returned a primV return the primV
             if? equal? (as.hex (type primT)) (as.hex (type id)) [ 
                 return id
             ]
+
+            ; otherwise, interp that and return it
             else [ print "else" return interp id envir ]
             ]
+
+        ; if its an ifC call the helper function
         when? [equal? (as.hex ifT)] -> return evalifT ex
+
+        ; if it's a lamC, return a cloV with the current environment
         when? [equal? (as.hex lamT)] [
             a: to :cloV [ex\body ex\arguments envir]
             return a]
+
+        ; if its a function appC ...
         when? [equal? (as.hex appT)] [
+            ; interp the function which should be either a prim or a lam
             func: (interp ex\function envir)
+
+            ; interpret the arguments
             print ex\arguments
-            print ex\arguments\0
             args: map ex\arguments 'x -> interp x envir
             print args
+
+            ; check what the function interp returned
             case [as.hex (type func)]
-                ; if it is a primitive operator
+
+                ; if the function is a prim, call the helper function and pass it the arguments
                 when? [equal? (as.hex (type primT))][
-                    
                     return applyPrim func args\0 args\1
                 ]
 
-                ; if not a primV or a cloV interp it
-                else -> print "not prim or clo" return interp id envir
+                ; if it is a cloV, connect the current parameters to the cloV's args
+                ; add these new connections to the cloV's environment
+                ; interp the body of the cloV using this updated environment
+                when? [equal? (as.hex (type cloT))][
+                    return applyPrim func args\0 args\1
+                ]
+
+                ; if not a primV or a cloV error
+                else -> "error OAZO invalid function call"
             ]
+        ; if not given a valid exprC, error
         else -> return "error OAZO outer match"
 ]
 
@@ -84,6 +115,7 @@ evalifT: function [ ifC ] [
 ]
 
 ; apply-prim method for our custom type
+; performs the specified operator on the arguments and returns the result
 applyPrim: function [this arg1 arg2][
     print "applyPrim called"
     case [this\op]
