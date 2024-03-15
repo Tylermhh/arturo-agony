@@ -59,6 +59,7 @@ interp: function [ ex envir ] [
             else [ print "else" return interp id envir ]
             ]
 
+
         ; if its an ifC call the helper function
         when? [equal? (as.hex ifT)] -> return evalifT ex
 
@@ -129,6 +130,7 @@ applyPrim: function [this arg1 arg2][
 
 
 
+
 ; TESTS
 
 
@@ -137,11 +139,24 @@ print "Num Test"
 num: to :numC [1]
 print interp num envir
 
+; attempt at testing with built-in tests
+;tests: [
+;    [1? interp num envir]
+;]
+;loop tests => ensure
+
 
 ; String Test
 print "\nString Test"
 str: to :strC ["hello"]
 print interp str envir
+
+; attempt at testing again
+;tests: [
+;    ["hello"? interp num envir]
+;]
+;loop tests => ensure
+
 
 ; Id Test (looks up in envir)
 print "\nLookup id Test"
@@ -164,6 +179,8 @@ print "\nApply Binop Test"
 funcApp: to :appC[id [num num]]
 print interp funcApp envir
 
+; testing with arrays since putting objects in arrs in arturo is weird
+; extracting them is the weird part
 print "\nTesting arrays"
 num2: to :numC[2]
 myArray: [num2 num2]
