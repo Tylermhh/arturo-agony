@@ -30,7 +30,7 @@ interp: function [ ex envir ] [
     appT: to :appC [0 0]
     primT: to :primV[""]
     cloT: to :cloV[0 0 0]
-    print "interp called"
+    print "interp called with"
     print ex
     
     ; Using hex of type to compare
@@ -47,8 +47,7 @@ interp: function [ ex envir ] [
             ]
         when? [equal? (as.hex ifT)] -> return evalifT ex
         when? [equal? (as.hex lamT)] [
-            a: to :CloV [ex\body ex\arguments envir]
-            print a
+            a: to :cloV [ex\body ex\arguments envir]
             return a]
         when? [equal? (as.hex appT)] [
             func: (interp ex\function envir)
@@ -117,6 +116,11 @@ print "\nLookup id Test"
 id: to :idC ["x"]
 print interp id envir
 
+; Lam Test (TODO)
+print "\nLamC return Test"
+lam: to :lamC [0 1]
+print interp lam envir
+
 ; primV Test (looks up in envir)
 print "\nId return primV Test"
 id: to :idC ["+"]
@@ -141,8 +145,3 @@ iff: to :ifC [true "then clause" "alt clause"]
 print interp iff envir
 iff2: to :ifC [false "then clause" "alt clause"]
 print interp iff2 envir
-
-; Lam Test (TODO)
-print "\nLamC return Test"
-lam: to :lamC [0 1]
-print interp lam envir
